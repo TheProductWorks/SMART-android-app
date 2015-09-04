@@ -1,6 +1,7 @@
 package ie.teamchile.smartapp.util;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
@@ -10,7 +11,6 @@ import ie.teamchile.smartapp.R;
  * Created by user on 7/16/15.
  */
 public class CustomDialogs {
-
     public CustomDialogs() {}
 
     public void showErrorDialog(Context context, String message) {
@@ -46,5 +46,17 @@ public class CustomDialogs {
                 });
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    public ProgressDialog showProgressDialog(Context context, String message) {
+        ProgressDialog pd;
+
+        pd = new ProgressDialog(context);
+        pd.setMessage(message);
+        pd.setCanceledOnTouchOutside(false);
+        pd.setCancelable(false);
+        pd.show();
+
+        return pd;
     }
 }

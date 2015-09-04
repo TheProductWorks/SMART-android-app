@@ -1,7 +1,7 @@
 package ie.teamchile.smartapp.activities;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -35,6 +35,7 @@ import ie.teamchile.smartapp.api.SmartApiClient;
 import ie.teamchile.smartapp.model.Appointment;
 import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.model.PostingData;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -47,20 +48,17 @@ public class AppointmentCalendarActivity extends BaseActivity {
     private String clinicOpening, clinicClosing, closingMinusInterval,
             dateSelectedStr, timeBefore, timeAfter, nameOfClinic;
     private int appointmentInterval, dayOfWeek;
-    private List<String> timeSingle, gestSingle, nameSingle;
+    private List<String> timeSingle;
     private List<Integer> listOfApptId = new ArrayList<>();
     private Calendar c = Calendar.getInstance(), myCalendar = Calendar.getInstance();
     private Intent intent;
     private List<String> timeList = new ArrayList<>();
-    private List<String> nameList = new ArrayList<>();
-    private List<String> gestList = new ArrayList<>();
     private List<Integer> idList = new ArrayList<>();
     private int serviceOptionId;
-    private List<Boolean> attendedList = new ArrayList<>();
-    private List<Boolean> attendedSingle = new ArrayList<>();
     private Button dateInList, btnPrevWeek, btnNextWeek;
     private BaseAdapter adapter;
     private ListView listView;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,9 +93,11 @@ public class AppointmentCalendarActivity extends BaseActivity {
         dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
         c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 
-        listView.setAdapter(null);
+        idList = new ArrayList<>();
+        adapter = new ListElementAdapter();
+        listView.setAdapter(adapter);
+
         newSetToList(daySelected);
-        adapter.notifyDataSetChanged();
         createDatePicker();
     }
 
@@ -111,7 +111,7 @@ public class AppointmentCalendarActivity extends BaseActivity {
         super.onResume();
         Log.d("bugs", "in onResume");
         Log.d("bugs", "daySelected: " + daySelected);
-        listView.setAdapter(null);
+        idList = new ArrayList<>();
         adapter.notifyDataSetChanged();
         newSetToList(daySelected);
     }
@@ -162,7 +162,7 @@ public class AppointmentCalendarActivity extends BaseActivity {
                     newSetToList(myCalendar.getTime());
                 } else {
                     Log.d("bugs", "wrong date");
-                    showProgressDialog(AppointmentCalendarActivity.this,
+                    pd = new CustomDialogs().showProgressDialog(AppointmentCalendarActivity.this,
                             "Invalid day selected\nPlease choose another");
                     Handler mHandler = new Handler();
                     mHandler.postDelayed(new Runnable() {
@@ -185,15 +185,9 @@ public class AppointmentCalendarActivity extends BaseActivity {
 
     private void newSetToList(Date dateSelected) {
         timeSingle = new ArrayList<>();
-        nameSingle = new ArrayList<>();
-        gestSingle = new ArrayList<>();
-        attendedSingle = new ArrayList<>();
         listOfApptId = new ArrayList<>();
 
         timeList = new ArrayList<>();
-        nameList = new ArrayList<>();
-        gestList = new ArrayList<>();
-        attendedList = new ArrayList<>();
         idList = new ArrayList<>();
 
         Date apptTime = openingAsDate;
@@ -204,69 +198,38 @@ public class AppointmentCalendarActivity extends BaseActivity {
         nameOfClinic = BaseModel.getInstance().getClinicMap().get(clinicSelected).getName();
         setActionBarTitle(nameOfClinic);
 
-        if (BaseModel.getInstance().getClinicVisitClinicDateApptIdMap().containsKey(clinicSelected)) {
-            listOfApptId = BaseModel.getInstance().getClinicVisitClinicDateApptIdMap().get(clinicSelected).get(dateSelectedStr);
-        } else
-            listOfApptId = new ArrayList<>();
-
         while (!closingAsDate.before(apptTime)) {
             timeList.add(dfTimeOnly.format(apptTime));
-            nameList.add("Free Slot");
-            gestList.add("");
-            attendedList.add(false);
             idList.add(0);
             c.setTime(apptTime);
             c.add(Calendar.MINUTE, appointmentInterval);
             apptTime = c.getTime();
         }
-        if (listOfApptId != null) {
-            for (int i = 0; i < listOfApptId.size(); i++) {
-                Appointment appointment = BaseModel.getInstance().getClinicVisitIdApptMap().get(listOfApptId.get(i));
-                String timeOfAppt = "";
-                try {
-                    timeOfAppt = dfTimeOnly.format(dfTimeWSec.parse(appointment.getTime()));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                timeSingle.add(timeOfAppt);
-                nameSingle.add(appointment.getServiceUser().getName());
-                gestSingle.add(appointment.getServiceUser().getGestation());
-                if (appointment.getAttended() == null)
-                    attendedSingle.add(false);
-                else
-                    attendedSingle.add(appointment.getAttended());
-            }
 
-            for (int i = 0; i < timeSingle.size(); i++) {
-                if (timeList.contains(timeSingle.get(i))) {
-                    int x = timeList.indexOf(timeSingle.get(i));
-                    if (nameList.get(x).equals("Free Slot")) {
-                        idList.set(x, listOfApptId.get(i));
-                        timeList.set(x, timeSingle.get(i));
-                        nameList.set(x, nameSingle.get(i));
-                        gestList.set(x, gestSingle.get(i));
-                        attendedList.set(x, attendedSingle.get(i));
-                    } else {
-                        idList.add(x, listOfApptId.get(i));
-                        timeList.add(x, timeSingle.get(i));
-                        nameList.add(x, nameSingle.get(i));
-                        gestList.add(x, gestSingle.get(i));
-                        attendedList.add(x, attendedSingle.get(i));
+        if (BaseModel.getInstance().getClinicVisitClinicDateApptIdMap().containsKey(clinicSelected)) {
+            listOfApptId = BaseModel.getInstance().getClinicVisitClinicDateApptIdMap().get(clinicSelected).get(dateSelectedStr);
+
+            if (listOfApptId != null) {
+                for (int i = 0; i < listOfApptId.size(); i++) {
+                    Appointment appointment = BaseModel.getInstance().getClinicVisitIdApptMap().get(listOfApptId.get(i));
+                    String timeOfAppt = "";
+                    try {
+                        timeOfAppt = dfTimeOnly.format(dfTimeWSec.parse(appointment.getTime()));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    if(timeList.contains(timeOfAppt)){
+                        idList.set(timeList.indexOf(timeOfAppt), appointment.getId());
                     }
                 }
             }
         }
 
-        adapter = new ListElementAdapter(AppointmentCalendarActivity.this,
-                timeList, nameList, gestList, attendedList);
-        adapter.notifyDataSetChanged();
-        listView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
 
     private void changeAttendStatus(Boolean status, int position) {
-        showProgressDialog(AppointmentCalendarActivity.this, "Changing Attended Status");
-        attendedList.set(position, status);
+        pd = new CustomDialogs().showProgressDialog(AppointmentCalendarActivity.this, "Changing Attended Status");
 
         PostingData attendedStatus = new PostingData();
         attendedStatus.putAppointmentStatus(
@@ -347,7 +310,6 @@ public class AppointmentCalendarActivity extends BaseActivity {
                     daySelected = c.getTime();
                     myCalendar.setTime(daySelected);
                     createDatePicker();
-                    listView.setAdapter(null);
                     newSetToList(c.getTime());
                     pauseButton();
                     break;
@@ -357,7 +319,6 @@ public class AppointmentCalendarActivity extends BaseActivity {
                     daySelected = c.getTime();
                     myCalendar.setTime(daySelected);
                     createDatePicker();
-                    listView.setAdapter(null);
                     newSetToList(c.getTime());
                     pauseButton();
                     break;
@@ -366,57 +327,66 @@ public class AppointmentCalendarActivity extends BaseActivity {
     }
 
     private class ListElementAdapter extends BaseAdapter {
-        LayoutInflater layoutInflater;
-        List<String> aptTime, aptName, aptGest;
-        List<Boolean> attendedList;
-        ViewHolder holder;
-
-        public ListElementAdapter(Context context, List<String> aptTime,
-                                  List<String> aptName, List<String> aptGest,
-                                  List<Boolean> attendedList) {
-            super();
-            Log.d("MYLOG", "daySelected: " + daySelected);
-            Log.d("MYLOG", "List Adapter Called");
-            this.aptTime = aptTime;
-            this.aptName = aptName;
-            this.aptGest = aptGest;
-            this.attendedList = attendedList;
-            layoutInflater = LayoutInflater.from(context);
-        }
-
-        @Override
-        public void notifyDataSetChanged() {
-            super.notifyDataSetChanged();
-        }
 
         @Override
         public int getCount() {
-            return aptTime.size();
+            return idList.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return null;
+            return idList.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return position;
+            return idList.get(position).hashCode();
         }
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
+            final ViewHolder holder;
+            final Appointment appointment = BaseModel.getInstance().getClinicVisitIdApptMap().get(getItem(position));
+            final Boolean attended;
+
             if (convertView == null) {
+                LayoutInflater layoutInflater = LayoutInflater.from(AppointmentCalendarActivity.this);
                 convertView = layoutInflater.inflate(R.layout.list_layout_appointment, null);
                 holder = new ViewHolder(convertView);
                 convertView.setTag(holder);
             } else
                 holder = (ViewHolder) convertView.getTag();
 
+            holder.timeText.setText(timeList.get(position));
+
+            if(getItem(position) == 0){
+                holder.nameText.setText("Free Slot");
+                holder.gestText.setText("");
+                attended = false;
+                holder.swipeLayout.setSwipeEnabled(false);
+                holder.nameText.setTextColor(getResources().getColor(R.color.free_slot));
+                holder.nameText.setTypeface(null, Typeface.ITALIC);
+            } else {
+                holder.nameText.setText(appointment.getServiceUser().getName());
+                holder.gestText.setText(appointment.getServiceUser().getGestation());
+                attended = appointment.getAttended();
+                holder.swipeLayout.setSwipeEnabled(true);
+                holder.nameText.setTextColor(holder.gestText.getTextColors().getDefaultColor());
+                holder.nameText.setTypeface(null, Typeface.NORMAL);
+            }
+
+            if (attended) {
+                holder.ivAttend.setBackgroundResource(R.color.attended);
+                holder.btnChangeStatus.setText("No");
+            } else {
+                holder.ivAttend.setBackgroundResource(R.color.unattended);
+                holder.btnChangeStatus.setText("Yes");
+            }
+
             holder.llApptListItem.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if (idList.get(position).equals(0)) {
+                    if (getItem(position).equals(0)) {
                         intent = new Intent(AppointmentCalendarActivity.this, CreateAppointmentActivity.class);
                         intent.putExtra("from", "clinic-appointment");
                         intent.putExtra("time", timeList.get(position));
@@ -424,9 +394,9 @@ public class AppointmentCalendarActivity extends BaseActivity {
                         intent.putExtra("serviceOptionId", String.valueOf(serviceOptionId));
                         startActivity(intent);
                     } else {
-                        int serviceUserId = BaseModel.getInstance().getClinicVisitIdApptMap().get(idList.get(position)).getServiceUserId();
+                        int serviceUserId = appointment.getServiceUserId();
                         Log.d("bugs", "db string: " + "service_users" + "/" + serviceUserId);
-                        showProgressDialog(AppointmentCalendarActivity.this,
+                        pd = new CustomDialogs().showProgressDialog(AppointmentCalendarActivity.this,
                                 "Fetching Information");
                         intent = new Intent(AppointmentCalendarActivity.this, ServiceUserActivity.class);
                         searchServiceUser(serviceUserId, intent);
@@ -438,55 +408,31 @@ public class AppointmentCalendarActivity extends BaseActivity {
             holder.btnChangeStatus.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     Log.d("Button", "position = " + position);
                     holder.swipeLayout.close();
-                    if (!attendedList.get(position)) {
+                    if (!attended) {
+                        appointment.setAttended(true);
                         changeAttendStatus(true, position);
-                        holder.ivAttend.setBackgroundResource(R.color.attended);
-                        notifyDataSetChanged();
-                    } else if (attendedList.get(position)) {
+                        appointment.setAttended(true);
+                        adapter.notifyDataSetChanged();
+                    } else if (attended) {
                         changeAttendStatus(false, position);
-                        holder.ivAttend.setBackgroundResource(R.color.unattended);
-                        notifyDataSetChanged();
+                        appointment.setAttended(false);
+                        adapter.notifyDataSetChanged();
                     }
                 }
             });
-
-            if (idList.get(position).equals(0)) {
-                holder.timeText.setText(aptTime.get(position));
-                holder.nameText.setText(aptName.get(position));
-                holder.gestText.setText(aptGest.get(position));
-                holder.swipeLayout.setSwipeEnabled(false);
-
-                holder.nameText.setTextColor(getResources().getColor(R.color.free_slot));
-                holder.nameText.setTypeface(null, Typeface.ITALIC);
-            } else {
-                holder.timeText.setText(aptTime.get(position));
-                holder.nameText.setText(aptName.get(position));
-                holder.gestText.setText(aptGest.get(position));
-
-                if (attendedList.get(position)) {
-                    holder.ivAttend.setBackgroundResource(R.color.attended);
-                    holder.btnChangeStatus.setText("No");
-                    //btnChangeStatus.setEnabled(false);
-                } else if (!attendedList.get(position)) {
-                    holder.ivAttend.setBackgroundResource(R.color.unattended);
-                    holder.btnChangeStatus.setText("Yes");
-                    //btnChangeStatus.setEnabled(true);
-                }
-            }
             return convertView;
         }
 
         private class ViewHolder {
-            TextView timeText;
-            TextView nameText;
-            TextView gestText;
-            Button btnChangeStatus;
-            ImageView ivAttend;
-            SwipeLayout swipeLayout;
-            LinearLayout llApptListItem;
+            private TextView timeText;
+            private TextView nameText;
+            private TextView gestText;
+            private Button btnChangeStatus;
+            private ImageView ivAttend;
+            private SwipeLayout swipeLayout;
+            private LinearLayout llApptListItem;
 
              public ViewHolder(View view) {
                  timeText = (TextView) view.findViewById(R.id.tv_time);

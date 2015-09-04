@@ -1,5 +1,6 @@
 package ie.teamchile.smartapp.activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.model.Clinic;
 import ie.teamchile.smartapp.model.ServiceOption;
 import ie.teamchile.smartapp.model.ServiceUserAction;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -29,6 +31,7 @@ public class QuickMenuActivity extends BaseActivity {
     private boolean isViewVisible;
     private Button btnPatientSearch, btnBookAppointment, btnClinicRecord, btnTodaysAppointments;
     private CountDownTimer timer;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +119,8 @@ public class QuickMenuActivity extends BaseActivity {
 
     private void updateData() {
         done = 0;
-        showProgressDialog(QuickMenuActivity.this, "Updating Information");
+        pd = new CustomDialogs().showProgressDialog(QuickMenuActivity.this, "Updating Information");
 
-        //getAllAppointments(QuickMenuActivity.this);
         showDialog = false;
 
         SmartApiClient.getAuthorizedApiClient().getServiceProviderById(

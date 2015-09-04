@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="ie.teamchile.smartapp"
           xmlns:android="http://schemas.android.com/apk/res/android"
-          android:versionCode="1"
-          android:versionName="1.1">
-
-    <uses-sdk
-        android:minSdkVersion="16"
-        android:targetSdkVersion="22"/>
+          android:versionCode="4"
+          android:versionName="1.1.2">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CALL_PHONE"/>
@@ -22,17 +18,19 @@
     <uses-permission android:name="android.permission.CLEAR_APP_CACHE"/>
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- android:name=".maiti.MaitiApplication" //this goes between application tags -->
     <application
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+
+        <activity android:name="net.hockeyapp.android.UpdateActivity" />
+
         <activity
             android:name=".activities.SplashScreenActivity"
             android:noHistory="true"
             android:screenOrientation="sensorPortrait"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:theme="@android:style/Theme.Translucent">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -52,11 +50,6 @@
             android:screenOrientation="sensorPortrait"/>
         <activity
             android:name=".activities.ClinicTimeRecordActivity"
-            android:screenOrientation="sensorPortrait"/>
-        <activity
-            android:name=".activities.ConfirmAppointmentActivity"
-            android:launchMode="singleTask"
-            android:noHistory="true"
             android:screenOrientation="sensorPortrait"/>
         <activity
             android:name=".activities.CreateAppointmentActivity"

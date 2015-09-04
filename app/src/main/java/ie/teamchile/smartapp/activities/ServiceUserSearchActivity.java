@@ -1,5 +1,6 @@
 package ie.teamchile.smartapp.activities;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ import ie.teamchile.smartapp.model.HearingHistory;
 import ie.teamchile.smartapp.model.NbstHistory;
 import ie.teamchile.smartapp.model.ServiceUser;
 import ie.teamchile.smartapp.model.VitKHistory;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -46,6 +48,7 @@ public class ServiceUserSearchActivity extends BaseActivity {
     private ListView lvSearchResults;
     private LinearLayout llNoUserFound;
     private Boolean changeActivity;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,7 +207,9 @@ public class ServiceUserSearchActivity extends BaseActivity {
         else
             name = name.trim();
         Log.d("retro", "ServiceUserSearchActivity user search success");
-        showProgressDialog(ServiceUserSearchActivity.this, "Fetching Information");
+        pd = new CustomDialogs().showProgressDialog(
+                ServiceUserSearchActivity.this,
+                "Fetching Information");
 
         SmartApiClient.getAuthorizedApiClient().getServiceUserByNameDobHospitalNum(
                 name,

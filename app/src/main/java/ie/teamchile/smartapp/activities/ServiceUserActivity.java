@@ -2,6 +2,7 @@ package ie.teamchile.smartapp.activities;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -43,6 +44,7 @@ import ie.teamchile.smartapp.api.SmartApiClient;
 import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.model.PostingData;
 import ie.teamchile.smartapp.model.ServiceUserAction;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -88,6 +90,7 @@ public class ServiceUserActivity extends BaseActivity {
     private int optionPosition;
     private int pregnancyId;
     private List<String> historyOptions;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -758,7 +761,9 @@ public class ServiceUserActivity extends BaseActivity {
 
         puttingAntiD.putAntiD(putAntiD, userId);
 
-        showProgressDialog(this, "Updating Anti-D");
+        pd = new CustomDialogs().showProgressDialog(
+                this,
+                "Updating Anti-D");
 
         SmartApiClient.getAuthorizedApiClient().putAnitD(
                 puttingAntiD,
@@ -795,7 +800,9 @@ public class ServiceUserActivity extends BaseActivity {
 
         puttingFeeding.putFeeding(putFeeding, userId);
 
-        showProgressDialog(this, "Updating Feeding");
+        pd = new CustomDialogs().showProgressDialog(
+                this,
+                "Updating Feeding");
 
         SmartApiClient.getAuthorizedApiClient().putAnitD(
                 puttingFeeding,
@@ -834,7 +841,9 @@ public class ServiceUserActivity extends BaseActivity {
 
         puttingVitK.putVitK(putVitK, userId, BaseModel.getInstance().getPregnancies().get(0).getId());
 
-        showProgressDialog(this, "Updating Vit-K");
+        pd = new CustomDialogs().showProgressDialog(
+                this,
+                "Updating Vit-K");
 
         SmartApiClient.getAuthorizedApiClient().putVitK(
                 puttingVitK,
@@ -873,7 +882,9 @@ public class ServiceUserActivity extends BaseActivity {
 
         puttingHearing.putHearing(putHearing, userId, BaseModel.getInstance().getPregnancies().get(0).getId());
 
-        showProgressDialog(this, "Updating Hearing");
+        pd = new CustomDialogs().showProgressDialog(
+                this,
+                "Updating Hearing");
 
         SmartApiClient.getAuthorizedApiClient().putHearing(
                 puttingHearing,
@@ -912,7 +923,9 @@ public class ServiceUserActivity extends BaseActivity {
 
         puttingNbst.putNBST(nbst, userId, BaseModel.getInstance().getPregnancies().get(0).getId());
 
-        showProgressDialog(this, "Updating NBST");
+        pd = new CustomDialogs().showProgressDialog(
+                this,
+                "Updating NBST");
 
         SmartApiClient.getAuthorizedApiClient().putNBST(
                 puttingNbst,
@@ -1007,7 +1020,9 @@ public class ServiceUserActivity extends BaseActivity {
         btnDialog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showProgressDialog(ServiceUserActivity.this, "Adding Actions");
+                pd = new CustomDialogs().showProgressDialog(
+                        ServiceUserActivity.this,
+                        "Adding Actions");
                 getMidwiferyNotes();
                 ad.dismiss();
             }

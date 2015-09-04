@@ -1,5 +1,6 @@
 package ie.teamchile.smartapp.activities;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -27,6 +28,7 @@ import ie.teamchile.smartapp.model.Clinic;
 import ie.teamchile.smartapp.model.ClinicTimeRecord;
 import ie.teamchile.smartapp.model.PostingData;
 import ie.teamchile.smartapp.util.AppointmentHelper;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import ie.teamchile.smartapp.util.SharedPrefs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -66,6 +68,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
     private int recordGetDone;
     private SharedPrefs sharedPrefs = new SharedPrefs();
     private AppointmentHelper appointmentHelper = new AppointmentHelper();
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +78,6 @@ public class ClinicTimeRecordActivity extends BaseActivity {
         todayDay = dfDayLong.format(c.getTime());
         todayDay = "Tuesday";
         todayDate = dfDateOnly.format(c.getTime());
-        Log.d("SMART", "today = " + todayDay);
         lvNotStarted = (ListView) findViewById(R.id.lv_clinics_not_started);
         lvNotStarted.setOnItemClickListener(new ItemClicky());
         lvStarted = (ListView) findViewById(R.id.lv_clinics_started);
@@ -116,31 +118,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
         btnResetRecord.setEnabled(false);
     }
 
-    private void getDataFromSingle() {
-        Log.d("bugs", "getting data from singleton");
-
-        clinicTimeRecords = BaseModel.getInstance().getClinicTimeRecords();
-        clinicStopped = BaseModel.getInstance().getClinicStopped();
-        clinicStarted = BaseModel.getInstance().getClinicStarted();
-        clinicNotStarted = BaseModel.getInstance().getClinicNotStarted();
-        clinicIdMap = BaseModel.getInstance().getClinicMap();
-        clinicDayMap = BaseModel.getInstance().getClinicDayMap();
-
-        for (int i = 0; i < clinicNotStarted.size(); i++) {
-            getTimeRecords(clinicNotStarted.get(i), todayDate);
-        }
-
-        for (int i = 0; i < clinicStarted.size(); i++) {
-            getTimeRecords(clinicStarted.get(i), todayDate);
-        }
-
-        setNotStartedList();
-        setStartedList();
-        setStoppedList();
-    }
-
     private void getDataFromDb() {
-        Log.d("bugs", "getting data from db");
         recordGetDone = 0;
 
         List<Clinic> clinics = BaseModel.getInstance().getClinics();
@@ -169,7 +147,9 @@ public class ClinicTimeRecordActivity extends BaseActivity {
         idList = clinicDayMap.get(todayDay);
 
         if (clinicDayMap.containsKey(todayDay)) {
-            showProgressDialog(ClinicTimeRecordActivity.this, "Updating Time Records");
+            pd = new CustomDialogs().showProgressDialog(
+                    ClinicTimeRecordActivity.this,
+                    "Updating Time Records");
             for (int i = 0; i < idList.size(); i++) {
                 getTimeRecords(idList.get(i), todayDate);
             }
@@ -214,18 +194,13 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                                     clinicStopped.add(clinicId);
                             }
                         } else {
-                            if (!clinicNotStarted.contains(clinicId)) {
+                            if (!clinicNotStarted.contains(clinicId))
                                 clinicNotStarted.add(clinicId);
-                            }
                         }
 
                         setNotStartedList();
                         setStartedList();
                         setStoppedList();
-
-                        Log.d("bugs", "clinicStopped = " + clinicStopped);
-                        Log.d("bugs", "clinicStarted = " + clinicStarted);
-                        Log.d("bugs", "clinicNotStarted = " + clinicNotStarted);
                     }
 
                     @Override
@@ -243,7 +218,9 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 clinicId,
                 date);
 
-        showProgressDialog(ClinicTimeRecordActivity.this, "Updating Clinic Time Records");
+        pd = new CustomDialogs().showProgressDialog(
+                ClinicTimeRecordActivity.this,
+                "Updating Clinic Time Records");
 
         SmartApiClient.getAuthorizedApiClient().postTimeRecords(
                 timeRecord,
@@ -273,9 +250,8 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
     private void putEndTime(String then, String date, final int clinicId) {
         for (int i = 0; i < clinicTimeRecords.size(); i++) {
-            if (clinicTimeRecords.get(i).getClinicId() == clinicId) {
+            if (clinicTimeRecords.get(i).getClinicId() == clinicId)
                 recordId = clinicTimeRecords.get(i).getId();
-            }
         }
 
         PostingData timeRecord = new PostingData();
@@ -284,7 +260,9 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 date,
                 clinicId);
 
-        showProgressDialog(ClinicTimeRecordActivity.this, "Updating Clinic Time Records");
+        pd = new CustomDialogs().showProgressDialog(
+                ClinicTimeRecordActivity.this,
+                "Updating Clinic Time Records");
 
         SmartApiClient.getAuthorizedApiClient().putTimeRecords(
                 timeRecord,
@@ -298,7 +276,6 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
                         for (int i = 0; i < clinicTimeRecords.size(); i++) {
                             if (clinicTimeRecords.get(i).getId() == recordId) {
-                                Log.d("bugs", "record id = " + clinicTimeRecords.get(i).getId());
                                 clinicTimeRecords.remove(i);
                                 clinicStarted.remove(clinicStarted.indexOf(clinicId));
                                 clinicStopped.add(clinicId);
@@ -320,7 +297,9 @@ public class ClinicTimeRecordActivity extends BaseActivity {
     }
 
     private void deleteTimeRecord(final int clinicIdForDelete, final int recordIdForDelete) {
-        showProgressDialog(ClinicTimeRecordActivity.this, "Deleting Time Record");
+        pd = new CustomDialogs().showProgressDialog(
+                ClinicTimeRecordActivity.this,
+                "Deleting Time Record");
 
         SmartApiClient.getAuthorizedApiClient().deleteTimeRecordById(
                 clinicIdForDelete,
@@ -333,7 +312,6 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
                         for (int i = 0; i < clinicTimeRecords.size(); i++) {
                             if (clinicTimeRecords.get(i).getId() == recordIdForDelete) {
-                                Log.d("bugs", "record id = " + clinicTimeRecords.get(i).getId());
                                 clinicTimeRecords.remove(i);
                                 clinicStopped.remove(clinicStopped.indexOf(clinicIdForDelete));
                                 clinicNotStarted.add(clinicIdForDelete);
@@ -358,7 +336,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
     private void setNotStartedList() {
         recordGetDone++;
-        String clinicName = "";
+        String clinicName;
         clinicNotStartedName = new ArrayList<>();
         if (clinicNotStarted.size() == 0) {
             clinicNotStartedName.add("No clinics to be started");
@@ -385,8 +363,8 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 android.R.layout.simple_list_item_1,
                 clinicNotStartedName);
 
-        adapterNotStart.notifyDataSetChanged();
         lvNotStarted.setAdapter(adapterNotStart);
+        adapterNotStart.notifyDataSetChanged();
     }
 
     private void setStartedList() {
@@ -417,8 +395,8 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 android.R.layout.simple_list_item_1,
                 clinicStartedName);
 
-        adapterStart.notifyDataSetChanged();
         lvStarted.setAdapter(adapterStart);
+        adapterStart.notifyDataSetChanged();
     }
 
     private void setStoppedList() {
@@ -450,11 +428,11 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 android.R.layout.simple_list_item_1,
                 clinicStoppedName);
 
-        adapterStop.notifyDataSetChanged();
         lvStopped.setAdapter(adapterStop);
+        adapterStop.notifyDataSetChanged();
     }
 
-    private void sortListApha(List<String> badList) {
+    private void sortListAlpha(List<String> badList) {
         Collections.sort(badList, new Comparator<String>() {
             @Override
             public int compare(String lhs, String rhs) {
@@ -481,9 +459,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                     clinicNotStartedId = 0;
                     adapterNotStart.notifyDataSetChanged();
                     lvNotStarted.setAdapter(adapterNotStart);
-                    Log.d("bugs", "started clinic list pressed");
                     clinicStartedId = clinicStarted.get(position);
-                    Log.d("bugs", "clinicStartedId = " + clinicStartedId);
                     break;
             }
         }
@@ -498,12 +474,9 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                     clinicIdForDelete = clinicStopped.get(position);
                     for (int i = 0; i < clinicTimeRecords.size(); i++) {
                         if (clinicTimeRecords.get(i).getClinicId() == clinicIdForDelete) {
-                            Log.d("bugs", "record id = " + clinicTimeRecords.get(i).getId());
                             recordIdForDelete = clinicTimeRecords.get(i).getId();
                         }
                     }
-                    Log.d("bugs", "clinicIdForDelete = " + clinicIdForDelete);
-                    Log.d("bugs", "recordIdForDelete = " + recordIdForDelete);
                     break;
             }
             return false;
@@ -521,7 +494,6 @@ public class ClinicTimeRecordActivity extends BaseActivity {
             switch (v.getId()) {
                 case R.id.btn_start_clinic:
                     if (clinicNotStartedId != 0) {
-                        Log.d("bugs", "start clinic btn pressed");
                         sharedPrefs.overWriteStringPrefs(ClinicTimeRecordActivity.this,
                                 "clinic_started", String.valueOf(clinicNotStartedId));
                         sharedPrefs.addToStringSetPrefs(ClinicTimeRecordActivity.this,
@@ -533,12 +505,10 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                     }
                     break;
                 case R.id.btn_stop_clinic:
-                    Log.d("bugs", "stop clinic btn pressed");
                     if (clinicStartedId != 0)
                         putEndTime(then, date, clinicStartedId);
                     break;
                 case R.id.btn_reset_clinic_record:
-                    Log.d("timeRecord", "delete record clinic id = " + clinicIdForDelete);
                     if (clinicIdForDelete != 0)
                         deleteTimeRecord(clinicIdForDelete, recordIdForDelete);
                     break;

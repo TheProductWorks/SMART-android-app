@@ -1,5 +1,6 @@
 package ie.teamchile.smartapp.activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import ie.teamchile.smartapp.R;
 import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.util.AdapterSpinner;
 import ie.teamchile.smartapp.util.AppointmentHelper;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import ie.teamchile.smartapp.util.SharedPrefs;
 
 public class AppointmentTypeSpinnerActivity extends BaseActivity {
@@ -40,6 +42,7 @@ public class AppointmentTypeSpinnerActivity extends BaseActivity {
     private SharedPrefs sharedPrefs = new SharedPrefs();
     private AppointmentHelper apptHelp = new AppointmentHelper();
     private CountDownTimer timer;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,10 +79,6 @@ public class AppointmentTypeSpinnerActivity extends BaseActivity {
         weekSpinner.setOnItemSelectedListener(new MySpinnerOnItemSelectedListener());
         visitOptionSpinner.setOnItemSelectedListener(new MySpinnerOnItemSelectedListener());
 
-        /*visitAdapter = new AdapterSpinner(this, R.array.visit_service_option, R.layout.spinner_layout, R.id.tv_spinner_item);
-        visitAdapter.setDropDownViewResource(R.layout.spinner_layout);
-        visitOptionSpinner.setAdapter(visitAdapter);*/
-
         tvAppointmentType.setVisibility(View.VISIBLE);
         tvServiceOption.setVisibility(View.GONE);
         tvVisit.setVisibility(View.GONE);
@@ -112,7 +111,6 @@ public class AppointmentTypeSpinnerActivity extends BaseActivity {
 
 	private void setClinicSpinner(int z){
         idList = BaseModel.getInstance().getServiceOptionsClinicMap().get(z).getClinicIds();
-        Log.d("Retrofit", "clinic id list = " + idList);
 		List<String> clinicNames = new ArrayList<>();
 		clinicNames.add("Select Clinic");
 
@@ -469,7 +467,7 @@ public class AppointmentTypeSpinnerActivity extends BaseActivity {
     }
 
     private void doneChecker(final Intent intent){
-        showProgressDialog(AppointmentTypeSpinnerActivity.this,
+        pd = new CustomDialogs().showProgressDialog(AppointmentTypeSpinnerActivity.this,
                 "Gettting Appointments");
         timer = new CountDownTimer(200, 100) {
             @Override
@@ -495,7 +493,6 @@ public class AppointmentTypeSpinnerActivity extends BaseActivity {
         passOptions.setDaySelected(daySelected);
         passOptions.setVisitOption(visitOptionSelected);
 
-        //Intent intent = new Intent(AppointmentTypeSpinnerActivity.this, AppointmentCalendarActivity.class);
         startActivity(intent);
     }
 

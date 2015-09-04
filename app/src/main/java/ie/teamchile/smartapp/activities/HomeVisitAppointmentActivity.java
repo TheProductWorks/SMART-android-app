@@ -1,10 +1,9 @@
 package ie.teamchile.smartapp.activities;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -34,6 +33,7 @@ import ie.teamchile.smartapp.api.SmartApiClient;
 import ie.teamchile.smartapp.model.Appointment;
 import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.model.PostingData;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -41,20 +41,15 @@ import retrofit.client.Response;
 public class HomeVisitAppointmentActivity extends BaseActivity {
     protected static Date daySelected;
     protected static int visitOptionSelected;
-    private final int sdkVersion = Build.VERSION.SDK_INT;
-    private Date openingAsDate, closingAsDate;
-    private String dateSelectedStr, timeBefore, timeAfter, nameOfClinic;
-    private String priority = "home-visit";
+    private String dateSelectedStr, nameOfClinic;
     private int dayOfWeek;
     private Calendar c = Calendar.getInstance(), myCalendar = Calendar.getInstance();
     private Intent intent;
-    private List<String> nameList = new ArrayList<>();
-    private List<String> gestList = new ArrayList<>();
     private List<Integer> idList = new ArrayList<>();
-    private List<Boolean> attendedList = new ArrayList<>();
     private Button dateInList, btnPrevWeek, btnNextWeek;
     private BaseAdapter adapter;
     private ListView listView;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +66,11 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
         c.setTime(daySelected);
         dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
 
-        listView.setAdapter(null);
+        idList = new ArrayList<>();
+        adapter = new ListElementAdapter();
+        listView.setAdapter(adapter);
+
         newSetToList(daySelected);
-        adapter.notifyDataSetChanged();
         createDatePicker();
     }
 
@@ -85,10 +82,6 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("bugs", "in onResume");
-        Log.d("bugs", "daySelected: " + daySelected);
-        listView.setAdapter(null);
-        adapter.notifyDataSetChanged();
         newSetToList(daySelected);
     }
 
@@ -143,9 +136,6 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
     }
 
     private void newSetToList(Date dateSelected) {
-        nameList = new ArrayList<>();
-        gestList = new ArrayList<>();
-        attendedList = new ArrayList<>();
         idList = new ArrayList<>();
 
         daySelected = dateSelected;
@@ -154,10 +144,6 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
         dateInList.setText(dfDateWMonthName.format(dateSelected));
         nameOfClinic = BaseModel.getInstance().getServiceOptionsHomeMap().get(visitOptionSelected).getName();
         setActionBarTitle(nameOfClinic);
-
-        nameList.add("Book Home Visit");
-        gestList.add("");
-        attendedList.add(false);
 
         if (BaseModel.getInstance().getHomeVisitOptionDateApptIdMap().containsKey(visitOptionSelected)) {
             if (BaseModel.getInstance().getHomeVisitOptionDateApptIdMap().get(visitOptionSelected).containsKey(dateSelectedStr)) {
@@ -176,18 +162,6 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
                         return ((Integer) valA).compareTo(valB);
                     }
                 });
-                for (int i = 0; i < idList.size(); i++) {
-                    if (idList.get(i) != 0) {
-                        Appointment appointment = BaseModel.getInstance().getHomeVisitIdApptMap().get(idList.get(i));
-                        nameList.add(appointment.getServiceUser().getName());
-                        gestList.add(appointment.getServiceUser().getGestation());
-
-                        if (appointment.getAttended() == null)
-                            attendedList.add(false);
-                        else
-                            attendedList.add(appointment.getAttended());
-                    }
-                }
             }
             idList.add(0, 0);
         } else {
@@ -195,21 +169,13 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
             idList.add(0);
         }
 
-        Log.d("bugs", "idList = " + idList);
-        Log.d("bugs", "nameSingle = " + nameList);
-        Log.d("bugs", "gestSingle = " + gestList);
-        Log.d("bugs", "attendedSingle = " + attendedList);
-
-        adapter = new ListElementAdapter(HomeVisitAppointmentActivity.this,
-                idList, nameList, gestList, attendedList);
-        adapter.notifyDataSetChanged();
-        listView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
 
     private void changeAttendStatus(Boolean status, int position) {
-        showProgressDialog(HomeVisitAppointmentActivity.this, "Changing Attended Status");
-        attendedList.set(position, status);
+        pd = new CustomDialogs().showProgressDialog(
+                HomeVisitAppointmentActivity.this,
+                "Changing Attended Status");
 
         PostingData attendedStatus = new PostingData();
         attendedStatus.putAppointmentStatus(
@@ -278,7 +244,6 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
                     daySelected = c.getTime();
                     myCalendar.setTime(daySelected);
                     createDatePicker();
-                    listView.setAdapter(null);
                     newSetToList(c.getTime());
                     pauseButton();
                     break;
@@ -288,7 +253,6 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
                     daySelected = c.getTime();
                     myCalendar.setTime(daySelected);
                     createDatePicker();
-                    listView.setAdapter(null);
                     newSetToList(c.getTime());
                     pauseButton();
                     break;
@@ -297,68 +261,72 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
     }
 
     private class ListElementAdapter extends BaseAdapter {
-        LayoutInflater layoutInflater;
-        List<Integer> apptId;
-        List<String> aptName, aptGest;
-        List<Boolean> attendedList;
-        ViewHolder holder;
-
-        public ListElementAdapter(Context context,
-                                  List<Integer> apptId,
-                                  List<String> aptName,
-                                  List<String> aptGest,
-                                  List<Boolean> attendedList) {
-            super();
-            Log.d("MYLOG", "daySelected: " + daySelected);
-            Log.d("MYLOG", "List Adapter Called");
-            this.apptId = apptId;
-            this.aptName = aptName;
-            this.aptGest = aptGest;
-            this.attendedList = attendedList;
-            layoutInflater = LayoutInflater.from(context);
-        }
-
-        @Override
-        public void notifyDataSetChanged() {
-            super.notifyDataSetChanged();
-        }
-
         @Override
         public int getCount() {
-            return aptName.size();
+            return idList.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return null;
+            return idList.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return position;
+            return idList.get(position).hashCode();
         }
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
+            final Appointment appointment = BaseModel.getInstance().getHomeVisitIdApptMap().get(getItem(position));
+            final ViewHolder holder;
+            final Boolean attended;
+
             if (convertView == null) {
+                LayoutInflater layoutInflater = LayoutInflater.from(HomeVisitAppointmentActivity.this);
                 convertView = layoutInflater.inflate(R.layout.list_layout_home_visit_appointment, null);
                 holder = new ViewHolder(convertView);
                 convertView.setTag(holder);
             } else
                 holder = (ViewHolder) convertView.getTag();
 
+            if(getItem(position) == 0){
+                holder.nameText.setText("Book Home Visit");
+                holder.gestText.setText("");
+                attended = false;
+                holder.swipeLayout.setSwipeEnabled(false);
+                holder.nameText.setTextColor(getResources().getColor(R.color.free_slot));
+                holder.nameText.setTypeface(null, Typeface.ITALIC);
+            } else {
+                holder.nameText.setText(appointment.getServiceUser().getName());
+                holder.gestText.setText(appointment.getServiceUser().getGestation());
+                attended = appointment.getAttended();
+                holder.swipeLayout.setSwipeEnabled(true);
+                holder.nameText.setTextColor(holder.gestText.getTextColors().getDefaultColor());
+                holder.nameText.setTypeface(null, Typeface.NORMAL);
+            }
+
+            if (attended) {
+                holder.ivAttend.setBackgroundResource(R.color.attended);
+                holder.btnChangeStatus.setText("No");
+            } else {
+                holder.ivAttend.setBackgroundResource(R.color.unattended);
+                holder.btnChangeStatus.setText("Yes");
+            }
+
             holder.llApptListItem.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if (apptId.get(position).equals(0)) {
+                    if (getItem(position).equals(0)) {
                         intent = new Intent(HomeVisitAppointmentActivity.this, CreateAppointmentActivity.class);
                         intent.putExtra("from", "home-visit");
                         intent.putExtra("serviceOptionId", String.valueOf(visitOptionSelected));
                         startActivity(intent);
                     } else {
-                        int serviceUserId = BaseModel.getInstance().getHomeVisitIdApptMap().get(apptId.get(position)).getServiceUserId();
+                        int serviceUserId = appointment.getServiceUserId();
                         Log.d("bugs", "db string: " + "service_users" + "/" + serviceUserId);
-                        showProgressDialog(HomeVisitAppointmentActivity.this,
+                        pd = new CustomDialogs().showProgressDialog(
+                                HomeVisitAppointmentActivity.this,
                                 "Fetching Information");
                         intent = new Intent(HomeVisitAppointmentActivity.this, ServiceUserActivity.class);
                         searchServiceUser(serviceUserId, intent);
@@ -372,50 +340,28 @@ public class HomeVisitAppointmentActivity extends BaseActivity {
                 public void onClick(View v) {
                     Log.d("Button", "position = " + position);
                     holder.swipeLayout.close();
-                    if (!attendedList.get(position)) {
+                    if (!attended) {
                         changeAttendStatus(true, position);
-                        holder.ivAttend.setBackgroundResource(R.color.attended);
+                        appointment.setAttended(true);
                         notifyDataSetChanged();
-                    } else if (attendedList.get(position)) {
+                    } else if (attended) {
                         changeAttendStatus(false, position);
-                        holder.ivAttend.setBackgroundResource(R.color.unattended);
+                        appointment.setAttended(false);
                         notifyDataSetChanged();
                     }
                 }
             });
 
-            if (apptId.get(position).equals(0)) {
-                holder.nameText.setText(aptName.get(position));
-                holder.gestText.setText(aptGest.get(position));
-                holder.swipeLayout.setSwipeEnabled(false);
-
-                holder.nameText.setTextColor(getResources().getColor(R.color.free_slot));
-                holder.nameText.setTypeface(null, Typeface.ITALIC);
-            } else {
-                holder.nameText.setText(aptName.get(position));
-                holder.gestText.setText(aptGest.get(position));
-                holder.swipeLayout.setSwipeEnabled(true);
-
-                if (attendedList.get(position)) {
-                    holder.ivAttend.setBackgroundResource(R.color.attended);
-                    holder.btnChangeStatus.setText("No");
-                    //btnChangeStatus.setEnabled(false);
-                } else if (!attendedList.get(position)) {
-                    holder.ivAttend.setBackgroundResource(R.color.unattended);
-                    holder.btnChangeStatus.setText("Yes");
-                    //btnChangeStatus.setEnabled(true);
-                }
-            }
             return convertView;
         }
 
         private class ViewHolder {
-            TextView nameText;
-            TextView gestText;
-            Button btnChangeStatus;
-            ImageView ivAttend;
-            SwipeLayout swipeLayout;
-            LinearLayout llApptListItem;
+            private TextView nameText;
+            private TextView gestText;
+            private Button btnChangeStatus;
+            private ImageView ivAttend;
+            private SwipeLayout swipeLayout;
+            private LinearLayout llApptListItem;
 
             public ViewHolder(View view) {
                 nameText = (TextView) view.findViewById(R.id.tv_name);

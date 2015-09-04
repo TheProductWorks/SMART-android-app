@@ -1,6 +1,7 @@
 package ie.teamchile.smartapp.activities;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -29,6 +30,7 @@ import ie.teamchile.smartapp.api.SmartApiClient;
 import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.model.PostingData;
 import ie.teamchile.smartapp.model.PregnancyNote;
+import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -46,6 +48,7 @@ public class MidwiferyLogActivity extends BaseActivity {
     private AlertDialog.Builder alertDialog;
     private AlertDialog ad;
     private int size;
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +63,9 @@ public class MidwiferyLogActivity extends BaseActivity {
         btnAddNote.setOnClickListener(new Clicky());
         etNote = (EditText) findViewById(R.id.et_midwifery_notes);
 
-        showProgressDialog(MidwiferyLogActivity.this, "Updating Notes");
+        pd = new CustomDialogs().showProgressDialog(
+                MidwiferyLogActivity.this,
+                "Updating Notes");
         getMidwiferyNotes();
     }
 
@@ -132,7 +137,9 @@ public class MidwiferyLogActivity extends BaseActivity {
 
         postNote.postNote(note);
 
-        showProgressDialog(this, "Adding Note");
+        pd = new CustomDialogs().showProgressDialog(
+                this,
+                "Adding Note");
 
         SmartApiClient.getAuthorizedApiClient().postPregnancyNote(
                 postNote,
@@ -198,7 +205,9 @@ public class MidwiferyLogActivity extends BaseActivity {
                 if (etEnterNote.getText().toString().equals("")) {
                     etEnterNote.setError("This Cannot Be Empty");
                 } else if (etEnterNote.getText().length() > max) {
-                    showProgressDialog(MidwiferyLogActivity.this, "Error character limit exceeded");
+                    pd = new CustomDialogs().showProgressDialog(
+                            MidwiferyLogActivity.this,
+                            "Error character limit exceeded");
                     new CountDownTimer(2000, 1000) {
 
                         @Override

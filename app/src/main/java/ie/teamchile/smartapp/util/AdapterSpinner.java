@@ -2,7 +2,6 @@ package ie.teamchile.smartapp.util;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -34,7 +33,6 @@ public class AdapterSpinner extends ArrayAdapter<String> {
         super(context, layoutresource, arrayResource);
         String[] resArrayId = context.getResources().getStringArray(arrayResource);
         List<String> list = Arrays.asList(resArrayId);
-        Log.d("bugs", "list = " + list);
         this.list = list;
         this.context = context;
         this.layoutresource = layoutresource;
@@ -43,20 +41,25 @@ public class AdapterSpinner extends ArrayAdapter<String> {
 
     @Override
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
-        convertView = View.inflate(context, layoutresource, null);
-        TextView tvSpinnerItem = (TextView) convertView.findViewById(tvResource);
-        tvSpinnerItem.setText(list.get(position));
+        ViewHolder holder;
+        if (convertView == null) {
+            convertView = View.inflate(context, layoutresource, null);
+            holder = new ViewHolder(convertView);
+            convertView.setTag(holder);
+        } else
+            holder = (ViewHolder) convertView.getTag();
+
+        holder.tvSpinnerItem.setText(list.get(position));
         switch (position) {
             case 0:
-                tvSpinnerItem.setTypeface(null, Typeface.ITALIC);
-                tvSpinnerItem.setTextColor(context.getResources().getColor(R.color.light_grey));
+                holder.tvSpinnerItem.setTypeface(null, Typeface.ITALIC);
+                holder.tvSpinnerItem.setTextColor(context.getResources().getColor(R.color.light_grey));
                 break;
             default:
-                tvSpinnerItem.setTextColor(context.getResources().getColor(R.color.black));
-                tvSpinnerItem.setTypeface(Typeface.DEFAULT);
+                holder.tvSpinnerItem.setTextColor(context.getResources().getColor(R.color.black));
+                holder.tvSpinnerItem.setTypeface(Typeface.DEFAULT);
                 break;
         }
-        //return super.getDropDownView(position, convertView, parent);
         return convertView;
     }
 
