@@ -27,12 +27,35 @@ public class SharedPrefs extends BaseActivity {
     public SharedPrefs() {
     }
 
+    public void setLongPrefs(Context context, long data, String tag) {
+        editor = context.getSharedPreferences("SMART", MODE_PRIVATE).edit();
+        editor.putLong(tag, data);
+        editor.commit();
+    }
+
+    public long getLongPrefs(Context context, String tag){
+        prefs = context.getSharedPreferences("SMART", MODE_PRIVATE);
+        long prefsData = prefs.getLong(tag, 0);
+        return prefsData;
+    }
+
+    public void setBooleanPrefs(Context context, boolean data, String tag) {
+        editor = context.getSharedPreferences("SMART", MODE_PRIVATE).edit();
+        editor.putBoolean(tag, data);
+        editor.commit();
+    }
+
+    public boolean getBooleanPrefs(Context context, String tag){
+        prefs = context.getSharedPreferences("SMART", MODE_PRIVATE);
+        boolean prefsData = prefs.getBoolean(tag, false);
+        return prefsData;
+    }
+
     public String getStringPrefs(Context context, String tag){
         prefs = context.getSharedPreferences("SMART", MODE_PRIVATE);
         String prefsData = prefs.getString(tag, "");
         return prefsData;
     }
-
 
     public void setStringPrefs(Context context, String data, String tag) {
         editor = context.getSharedPreferences("SMART", MODE_PRIVATE).edit();
