@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -47,12 +49,13 @@ public class AppointmentTypeSpinnerActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentForNav(R.layout.activity_appointment_type_spinner);
 
         c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         Log.d("MYLOG", "Date set to " + c.getTime());
 
-        spinnerWarning = getResources().getColor(R.color.spinner_warning);
+        spinnerWarning = ContextCompat.getColor(this, R.color.spinner_warning);
 
         tvAppointmentType = (TextView) findViewById(R.id.tv_appointment_type);
         tvServiceOption = (TextView) findViewById(R.id.tv_service_option);

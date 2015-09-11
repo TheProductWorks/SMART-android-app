@@ -7,6 +7,7 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -73,6 +74,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentForNav(R.layout.activity_clinic_time_record);
         c = Calendar.getInstance();
         todayDay = dfDayLong.format(c.getTime());

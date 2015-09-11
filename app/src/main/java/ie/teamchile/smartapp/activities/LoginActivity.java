@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_login);
 
         checkForUpdates();
@@ -137,8 +139,8 @@ public class LoginActivity extends AppCompatActivity {
         username = tvUsername.getText().toString();
         password = tvPassword.getText().toString();
 
-        if(!TextUtils.isEmpty(username) &&
-                !TextUtils.isEmpty(password)){
+        if (!TextUtils.isEmpty(username) &&
+                !TextUtils.isEmpty(password)) {
             postLogin();
             pd = new CustomDialogs().showProgressDialog(
                     LoginActivity.this,
