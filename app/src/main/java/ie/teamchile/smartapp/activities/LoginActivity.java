@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -29,6 +28,7 @@ import ie.teamchile.smartapp.util.SharedPrefs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class LoginActivity extends AppCompatActivity {
     private SharedPreferences prefs;
@@ -91,13 +91,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void getSharedPrefs() {
-        Log.d("prefs", "getSharedPrefs called");
+        Timber.d("getSharedPrefs called");
         prefs = this.getSharedPreferences("SMART", MODE_PRIVATE);
         Map<String, ?> prefsMap = prefs.getAll();
         for (Map.Entry<String, ?> entry : prefsMap.entrySet()) {
-            Log.d("prefs", "key = " + entry.getKey());
+            Timber.d("key = " + entry.getKey());
             if (entry.getKey().contains("appointment_post")) {
-                Log.d("prefs", "get key = " + prefs.getString(entry.getKey(), ""));
+                Timber.d("get key = " + prefs.getString(entry.getKey(), ""));
                 prefsUtil.postAppointment(
                         prefsUtil.getObjectFromString(
                                 prefs.getString(entry.getKey(), "")),
@@ -113,7 +113,8 @@ public class LoginActivity extends AppCompatActivity {
         SmartApiClient.getUnAuthorizedApiClient().postLogin(login, new Callback<BaseModel>() {
             @Override
             public void success(BaseModel baseModel, Response response) {
-                Tracking.startUsage(LoginActivity.this);
+                Timber.d("postLogin success");
+                        Tracking.startUsage(LoginActivity.this);
                 prefsUtil.deletePrefs(LoginActivity.this, "appts_got");
                 BaseModel.getInstance().setLogin(baseModel.getLogin());
                 BaseModel.getInstance().setLoginStatus(true);
@@ -127,7 +128,7 @@ public class LoginActivity extends AppCompatActivity {
             public void failure(RetrofitError error) {
                 if (error.getResponse() != null) {
                     BaseModel body = (BaseModel) error.getBodyAs(BaseModel.class);
-                    Log.d("Retrofit", "retro error = " + body.getError().getError());
+                    Timber.d("retro error = " + body.getError().getError());
                     Toast.makeText(LoginActivity.this, body.getError().getError(), Toast.LENGTH_LONG).show();
                 }
                 pd.dismiss();
@@ -157,8 +158,8 @@ public class LoginActivity extends AppCompatActivity {
             switch (v.getId()) {
                 case R.id.btn_login:
                     Tracking.startUsage(LoginActivity.this);
-                    Log.d("HockeyApp", "Login pressed");
-                    Log.d("HockeyApp", "timeUsage = " + Tracking.getUsageTime(LoginActivity.this));
+                    Timber.d("hockeyApp Login pressed");
+                    Timber.d("hockeyApp timeUsage = " + Tracking.getUsageTime(LoginActivity.this));
                     validateInput();
                     break;
                 case R.id.tv_about:

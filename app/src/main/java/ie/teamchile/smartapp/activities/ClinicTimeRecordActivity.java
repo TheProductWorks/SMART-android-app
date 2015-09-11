@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -34,6 +33,7 @@ import ie.teamchile.smartapp.util.SharedPrefs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class ClinicTimeRecordActivity extends BaseActivity {
     private List<Integer> clinicStopped = new ArrayList<>();
@@ -104,7 +104,6 @@ public class ClinicTimeRecordActivity extends BaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("bugs", "setting data to singleton");
 
         BaseModel.getInstance().setClinicTimeRecords(clinicTimeRecords);
         BaseModel.getInstance().setClinicStopped(clinicStopped);
@@ -144,8 +143,6 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 }
             }
         }
-        Log.d("Clinic", "Record map = " + clinicDayMap);
-
         idList = clinicDayMap.get(todayDay);
 
         if (clinicDayMap.containsKey(todayDay)) {
@@ -182,7 +179,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("retro", "get time record success");
+                        Timber.d("get time record success");
                         if (baseModel.getClinicTimeRecords().size() > 0) {
                             clinicTimeRecords.add(baseModel.getClinicTimeRecords().get(0));
                             if (baseModel.getClinicTimeRecords().get(0).getEndTime() == null) {
@@ -207,7 +204,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "get time record failure = " + error);
+                        Timber.d("get time record failure = " + error);
                     }
                 }
         );
@@ -230,7 +227,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("SMART", "retro success");
+                        Timber.d("retro success");
                         disableButtons();
 
                         clinicTimeRecords.add(baseModel.getClinicTimeRecord());
@@ -243,7 +240,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("SMART", "retro error = " + error.getResponse());
+                        Timber.d("retro error = " + error.getResponse());
                         pd.dismiss();
                         disableButtons();
                     }
@@ -273,7 +270,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("SMART", "retro success");
+                        Timber.d("retro success");
                         disableButtons();
 
                         for (int i = 0; i < clinicTimeRecords.size(); i++) {
@@ -291,7 +288,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("SMART", "retro error = " + error.getResponse());
+                        Timber.d("retro error = " + error.getResponse());
                         pd.dismiss();
                         disableButtons();
                     }
@@ -309,7 +306,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("retro", "deleteTimeRecord success");
+                        Timber.d("deleteTimeRecord success");
                         disableButtons();
 
                         for (int i = 0; i < clinicTimeRecords.size(); i++) {
@@ -327,7 +324,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "deleteTimeRecord failure = " + error);
+                        Timber.d("deleteTimeRecord failure = " + error);
                         pd.dismiss();
                         disableButtons();
                     }
@@ -452,9 +449,7 @@ public class ClinicTimeRecordActivity extends BaseActivity {
                     clinicStartedId = 0;
                     adapterStart.notifyDataSetChanged();
                     lvStarted.setAdapter(adapterStart);
-                    Log.d("bugs", "not started clinic list pressed");
                     clinicNotStartedId = clinicNotStarted.get(position);
-                    Log.d("bugs", "clinicNotStartedId = " + clinicNotStartedId);
                     break;
                 case R.id.lv_clinics_started:
                     btnStopClinic.setEnabled(true);

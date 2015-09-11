@@ -11,7 +11,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +48,7 @@ import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class ServiceUserActivity extends BaseActivity {
     private final CharSequence[] userContactList = {"Call Mobile", "Send SMS", "Send Email"};
@@ -291,14 +291,9 @@ public class ServiceUserActivity extends BaseActivity {
             e.printStackTrace();
         }
 
-        Log.d("bugs", "baby ids fro user = " + BaseModel.getInstance().getServiceUsers().get(0).getBabyIds().get(b));
         getRecentBabyId();
         getRecentBabyPosition();
-        Log.d("bugs", "recent baby id before = " + bId);
-        Log.d("bugs", "recent baby position before = " + b);
         pregnancyId = BaseModel.getInstance().getBabies().get(b).getPregnancyId();
-        Log.d("bugs", "recent baby id after = " + bId);
-        Log.d("bugs", "recent baby position after = " + b);
 
         BaseModel.getInstance().setPregnancyNotes(
                 BaseModel.getInstance().getPregnancies().get(p).getPregnancyNotes());
@@ -501,9 +496,7 @@ public class ServiceUserActivity extends BaseActivity {
                         String addr = tvUsrRoad.getText().toString() + ", "
                                 + tvUsrCounty.getText().toString() + ", "
                                 + tvUsrPostCode.getText().toString();
-                        Log.d("bugs", "geoCode: " + getGeoCoodinates(addr + "?z=12"));
                         Uri uri = Uri.parse(getGeoCoodinates(addr)); //"geo:47.6,-122.3?z=18"
-                        Log.d("bugs", "addr: " + addr);
                         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                         intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
                         startActivity(intent);
@@ -621,7 +614,6 @@ public class ServiceUserActivity extends BaseActivity {
     }
 
     private void setSharedPrefs() {
-        Log.d("bugs", "baby ids: " + babyID);
         SharedPreferences.Editor prefs = getSharedPreferences("SMART", MODE_PRIVATE).edit();
         if (babyID.get(p).equals("[]")) {
             prefs.putString("visit_type_str", "Antenatal");
@@ -642,7 +634,6 @@ public class ServiceUserActivity extends BaseActivity {
 
     private String getGeoCoodinates(String address) {
         Geocoder geocoder = new Geocoder(ServiceUserActivity.this);
-        Log.d("The Address", address);
         List<Address> addresses = null;
         try {
             if (!address.isEmpty() && address != null)
@@ -654,9 +645,6 @@ public class ServiceUserActivity extends BaseActivity {
         if (addresses != null && addresses.size() > 0) {
             double latitude = addresses.get(0).getLatitude();
             double longitude = addresses.get(0).getLongitude();
-            Log.d("Coordinates Found", String.valueOf(latitude));
-            Log.d("Coordinates Found", String.valueOf(longitude));
-            //"geo:47.6,-122.3?z=18"
             return "geo:" + String.valueOf(latitude) + "," + String.valueOf(longitude) + "?z=12" +
                     "&q=" + String.valueOf(latitude) + "," + String.valueOf(longitude) +
                     "(" + userName + ")";
@@ -729,8 +717,6 @@ public class ServiceUserActivity extends BaseActivity {
                                 putNBST(optionSelected);
                             else if (title.equals("Feeding"))
                                 putFeeding(optionSelected);
-
-                            Log.d("bugs", "anti d position button = " + optionPosition);
                         } else
                             Toast.makeText(ServiceUserActivity.this, "Please Make A Selection First", Toast.LENGTH_LONG).show();
                     }
@@ -741,7 +727,6 @@ public class ServiceUserActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 list.setSelected(true);
                 optionPosition = position;
-                Log.d("bugs", "anti d position list = " + position);
             }
         });
 
@@ -756,8 +741,6 @@ public class ServiceUserActivity extends BaseActivity {
     }
 
     private void putAntiD(String putAntiD) {
-        Log.d("bugs", "putting antiD");
-        Log.d("bugs", "antiD = " + putAntiD);
         c = Calendar.getInstance();
         PostingData puttingAntiD = new PostingData();
 
@@ -780,14 +763,14 @@ public class ServiceUserActivity extends BaseActivity {
                         dateTimeList.add(0, dfHumanReadableTimeDate.format(c.getTime()));
                         providerNameList.add(0, BaseModel.getInstance().getServiceProvider().getName());
                         BaseModel.getInstance().updatePregnancies(p, baseModel.getPregnancy());
-                        Log.d("retro", "put anti-d retro success");
+                        Timber.d("put anti-d retro success");
                         pd.dismiss();
                         ad.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "put anti-d retro failure = " + error);
+                        Timber.d("put anti-d retro failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -795,8 +778,6 @@ public class ServiceUserActivity extends BaseActivity {
     }
 
     private void putFeeding(String putFeeding) {
-        Log.d("bugs", "putting antiD");
-        Log.d("bugs", "feeding = " + putFeeding);
         c = Calendar.getInstance();
         PostingData puttingFeeding = new PostingData();
 
@@ -819,14 +800,14 @@ public class ServiceUserActivity extends BaseActivity {
                         dateTimeList.add(0, dfHumanReadableTimeDate.format(c.getTime()));
                         providerNameList.add(0, BaseModel.getInstance().getServiceProvider().getName());
                         BaseModel.getInstance().updatePregnancies(p, baseModel.getPregnancy());
-                        Log.d("retro", "put feeding retro success");
+                        Timber.d("put feeding retro success");
                         pd.dismiss();
                         ad.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "put feeding retro failure = " + error);
+                        Timber.d("put feeding retro failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -834,11 +815,9 @@ public class ServiceUserActivity extends BaseActivity {
     }
 
     private void putVitK(String putVitK) {
-        Log.d("bugs", "putting vitK");
-        Log.d("bugs", "vitK = " + putVitK);
         c = Calendar.getInstance();
         getRecentBabyId();
-        Log.d("bugs", "preg id = " + BaseModel.getInstance().getPregnancies().get(0).getId());
+        Timber.d("preg id = " + BaseModel.getInstance().getPregnancies().get(0).getId());
         PostingData puttingVitK = new PostingData();
 
         puttingVitK.putVitK(putVitK, userId, BaseModel.getInstance().getPregnancies().get(0).getId());
@@ -860,14 +839,14 @@ public class ServiceUserActivity extends BaseActivity {
                         dateTimeList.add(0, dfHumanReadableTimeDate.format(c.getTime()));
                         providerNameList.add(0, BaseModel.getInstance().getServiceProvider().getName());
                         //BaseModel.getInstance().updatePregnancies(p, baseModel.getPregnancy());
-                        Log.d("retro", "put vit k retro success");
+                        Timber.d("put vit k retro success");
                         pd.dismiss();
                         ad.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "put vit k retro failure = " + error);
+                        Timber.d("put vit k retro failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -875,11 +854,8 @@ public class ServiceUserActivity extends BaseActivity {
     }
 
     private void putHearing(String putHearing) {
-        Log.d("bugs", "putting hearing");
-        Log.d("bugs", "hearing = " + putHearing);
         c = Calendar.getInstance();
         getRecentBabyId();
-        Log.d("bugs", "preg id = " + BaseModel.getInstance().getPregnancies().get(0).getId());
         PostingData puttingHearing = new PostingData();
 
         puttingHearing.putHearing(putHearing, userId, BaseModel.getInstance().getPregnancies().get(0).getId());
@@ -901,14 +877,14 @@ public class ServiceUserActivity extends BaseActivity {
                         dateTimeList.add(0, dfHumanReadableTimeDate.format(c.getTime()));
                         providerNameList.add(0, BaseModel.getInstance().getServiceProvider().getName());
                         //BaseModel.getInstance().updatePregnancies(p, baseModel.getPregnancy());
-                        Log.d("retro", "put hearing retro success");
+                        Timber.d("put hearing retro success");
                         pd.dismiss();
                         ad.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "put hearing retro failure = " + error);
+                        Timber.d("put hearing retro failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -916,11 +892,8 @@ public class ServiceUserActivity extends BaseActivity {
     }
 
     private void putNBST(String putNbst) {
-        Log.d("bugs", "putting hearing");
-        Log.d("bugs", "nbst = " + putNbst);
         c = Calendar.getInstance();
         getRecentBabyId();
-        Log.d("bugs", "preg id = " + BaseModel.getInstance().getBabies().get(b).getPregnancyId());
         PostingData puttingNbst = new PostingData();
 
         puttingNbst.putNBST(nbst, userId, BaseModel.getInstance().getPregnancies().get(0).getId());
@@ -941,14 +914,14 @@ public class ServiceUserActivity extends BaseActivity {
                         historyList.add(0, nbst);
                         dateTimeList.add(0, dfHumanReadableTimeDate.format(c.getTime()));
                         providerNameList.add(0, BaseModel.getInstance().getServiceProvider().getName());
-                        Log.d("retro", "put nbst retro success");
+                        Timber.d("put nbst retro success");
                         pd.dismiss();
                         ad.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "put nbst retro failure = " + error);
+                        Timber.d("put nbst retro failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -961,14 +934,14 @@ public class ServiceUserActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("retro", "put getMidwiferyNotes retro success");
+                        Timber.d("put getMidwiferyNotes retro success");
                         BaseModel.getInstance().setPregnancyNotes(baseModel.getPregnancyNotes());
                         pd.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "put getMidwiferyNotes retro failure = " + error);
+                        Timber.d("put getMidwiferyNotes retro failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -985,24 +958,22 @@ public class ServiceUserActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("retro", "post pregnancy action retro success");
+                        Timber.d("post pregnancy action retro success");
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "post pregnancy action retro failure = " + error);
+                        Timber.d("post pregnancy action retro failure = " + error);
                     }
                 }
         );
     }
 
     private void showActionsDialog() {
-        Log.d("bugs", "in show dialog method");
         List<String> listServiceActions = new ArrayList<>();
         for(int i = 0; i < BaseModel.getInstance().getServiceUserActions().size(); i++){
             String shortCode = BaseModel.getInstance().getServiceUserActions().get(i).getShortCode();
             listServiceActions.add(shortCode);
-            Log.d("bugs", "shortCode = " + shortCode);
         }
 
         LayoutInflater inflater = getLayoutInflater();
@@ -1109,7 +1080,6 @@ public class ServiceUserActivity extends BaseActivity {
                     startActivity(intent);
                     break;
                 case R.id.btn_usr_actions:
-                    Log.d("bugs", "action btn pressed");
                     showActionsDialog();
                     break;
                 case R.id.ll_usr_contact:

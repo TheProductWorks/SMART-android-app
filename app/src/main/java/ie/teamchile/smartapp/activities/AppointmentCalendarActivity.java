@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -40,6 +39,7 @@ import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class AppointmentCalendarActivity extends BaseActivity {
     protected static Date daySelected;
@@ -67,7 +67,7 @@ public class AppointmentCalendarActivity extends BaseActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentForNav(R.layout.activity_appointment_calendar);
 
-        Log.d("bugs", "clinicSelected = " + clinicSelected);
+        Timber.d("clinicSelected = " + clinicSelected);
 
         dateInList = (Button) findViewById(R.id.btn_date);
         listView = (ListView) findViewById(R.id.lv_appointment_list);
@@ -111,8 +111,8 @@ public class AppointmentCalendarActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("bugs", "in onResume");
-        Log.d("bugs", "daySelected: " + daySelected);
+        Timber.d("in onResume");
+        Timber.d("daySelected: " + daySelected);
         idList = new ArrayList<>();
         adapter.notifyDataSetChanged();
         newSetToList(daySelected);
@@ -154,16 +154,11 @@ public class AppointmentCalendarActivity extends BaseActivity {
                 myCalendar.set(Calendar.YEAR, year);
                 myCalendar.set(Calendar.MONTH, monthOfYear);
                 myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                Log.d("postAppointment", "datePicker: " + myCalendar.getTime());
-                Log.d("postAppointment", "datePicker formatted: " +
-                        dfDateOnly.format(myCalendar.getTime()));
-                Log.d("bugs", "c.getDay: " + dayOfWeek);
-                Log.d("bugs", "myCalendar.getDay: " + myCalendar.get(Calendar.DAY_OF_WEEK));
+                        dfDateOnly.format(myCalendar.getTime());
                 if (myCalendar.get(Calendar.DAY_OF_WEEK) == dayOfWeek) {
                     dateInList.setText(dfDateWMonthName.format(myCalendar.getTime()));
                     newSetToList(myCalendar.getTime());
                 } else {
-                    Log.d("bugs", "wrong date");
                     pd = new CustomDialogs().showProgressDialog(AppointmentCalendarActivity.this,
                             "Invalid day selected\nPlease choose another");
                     Handler mHandler = new Handler();
@@ -253,7 +248,7 @@ public class AppointmentCalendarActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Attended", "retro error = " + error);
+                        Timber.d("retro error = " + error);
                         pd.dismiss();
                     }
                 }
@@ -397,7 +392,7 @@ public class AppointmentCalendarActivity extends BaseActivity {
                         startActivity(intent);
                     } else {
                         int serviceUserId = appointment.getServiceUserId();
-                        Log.d("bugs", "db string: " + "service_users" + "/" + serviceUserId);
+                        Timber.d("db string: " + "service_users" + "/" + serviceUserId);
                         pd = new CustomDialogs().showProgressDialog(AppointmentCalendarActivity.this,
                                 "Fetching Information");
                         intent = new Intent(AppointmentCalendarActivity.this, ServiceUserActivity.class);
@@ -410,7 +405,6 @@ public class AppointmentCalendarActivity extends BaseActivity {
             holder.btnChangeStatus.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("Button", "position = " + position);
                     holder.swipeLayout.close();
                     if (!attended) {
                         appointment.setAttended(true);

@@ -3,7 +3,6 @@ package ie.teamchile.smartapp.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
@@ -12,6 +11,7 @@ import android.webkit.WebView;
 import android.widget.ProgressBar;
 
 import ie.teamchile.smartapp.R;
+import timber.log.Timber;
 
 public class AboutActivity extends AppCompatActivity {
     private WebView webView;
@@ -37,7 +37,6 @@ public class AboutActivity extends AppCompatActivity {
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
                 progressBar.setProgress(newProgress);
-                Log.d("bugs", "progress = " + newProgress);
                 if(newProgress == 100)
                     progressBar.setVisibility(View.GONE);
             }

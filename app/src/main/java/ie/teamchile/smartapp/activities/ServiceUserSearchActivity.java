@@ -4,7 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +36,7 @@ import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class ServiceUserSearchActivity extends BaseActivity {
     private BaseAdapter adapterListResults;
@@ -108,12 +108,12 @@ public class ServiceUserSearchActivity extends BaseActivity {
                             }
                         });
                         BaseModel.getInstance().setVitKHistories(baseModel.getVitKHistories());
-                        Log.d("retro", "vit k history done");
+                        Timber.d("vit k history done");
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "vit k history failure = " + error);
+                        Timber.d("vit k history failure = " + error);
                     }
                 }
         );
@@ -136,12 +136,12 @@ public class ServiceUserSearchActivity extends BaseActivity {
                             }
                         });
                         BaseModel.getInstance().setHearingHistories(baseModel.getHearingHistories());
-                        Log.d("retro", "hearing history done");
+                        Timber.d("hearing history done");
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "hearing history failure = " + error);
+                        Timber.d("hearing history failure = " + error);
                     }
                 }
         );
@@ -164,12 +164,12 @@ public class ServiceUserSearchActivity extends BaseActivity {
                             }
                         });
                         BaseModel.getInstance().setNbstHistories(baseModel.getNbstHistories());
-                        Log.d("retro", "nbst history done");
+                        Timber.d("nbst history done");
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "nbst history failure = " + error);
+                        Timber.d("nbst history failure = " + error);
                     }
                 }
         );
@@ -192,12 +192,12 @@ public class ServiceUserSearchActivity extends BaseActivity {
                             }
                         });
                         BaseModel.getInstance().setFeedingHistories(baseModel.getFeedingHistories());
-                        Log.d("retro", "feeding history done");
+                        Timber.d("feeding history done");
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "feeding history failure = " + error);
+                        Timber.d("feeding history failure = " + error);
                     }
                 }
         );
@@ -208,7 +208,6 @@ public class ServiceUserSearchActivity extends BaseActivity {
             name = " ";
         else
             name = name.trim();
-        Log.d("retro", "ServiceUserSearchActivity user search success");
         pd = new CustomDialogs().showProgressDialog(
                 ServiceUserSearchActivity.this,
                 "Fetching Information");
@@ -242,7 +241,7 @@ public class ServiceUserSearchActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "ServiceUserSearchActivity user search failure = " + error);
+                        Timber.d("ServiceUserSearchActivity user search failure = " + error);
                         adapterListResults.notifyDataSetChanged();
                         llNoUserFound.setVisibility(View.VISIBLE);
                         pd.dismiss();

@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -46,6 +45,7 @@ import ie.teamchile.smartapp.util.SharedPrefs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class CreateAppointmentActivity extends BaseActivity {
     private ArrayAdapter<String> visitPriorityAdapter, returnTypeAdapter;
@@ -154,10 +154,8 @@ public class CreateAppointmentActivity extends BaseActivity {
     private void checkDirectionOfIntent() {
         String intentOrigin = getIntent().getStringExtra("from");
         if (intentOrigin.equals("clinic-appointment")) {
-            Log.d("bugs", "intent from clinic");
             clinicAppt();
         } else if (intentOrigin.equals("home-visit")) {
-            Log.d("bugs", "intent from home visit");
             homeVisitAppt();
         }
     }
@@ -239,6 +237,7 @@ public class CreateAppointmentActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
+                        Timber.d("searchPatient success");
                         String name, hospitalNumber, dob;
                         List<String> searchResults = new ArrayList<>();
                         int id;
@@ -273,7 +272,7 @@ public class CreateAppointmentActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retro", "retro failure error = " + error);
+                        Timber.d("retro failure error = " + error);
                         if (!error.getKind().equals(RetrofitError.Kind.NETWORK)) {
                             switch (error.getResponse().getStatus()) {
                                 case 500:
@@ -350,7 +349,6 @@ public class CreateAppointmentActivity extends BaseActivity {
         btnYes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("bugs", "yes 	 button clicked");
                 pd = new CustomDialogs().showProgressDialog(
                         CreateAppointmentActivity.this,
                         "Booking Appointment");
@@ -390,7 +388,8 @@ public class CreateAppointmentActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        BaseModel.getInstance().addAppointment(baseModel.getAppointment());
+                        Timber.d("postAppointment success");
+                                BaseModel.getInstance().addAppointment(baseModel.getAppointment());
                         if (returnType.equals("returning"))
                             addNewApptToMaps();
                         else if (returnType.equals("new"))
@@ -399,7 +398,7 @@ public class CreateAppointmentActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retrofit", "retro failure error = " + error);
+                        Timber.d("retro failure error = " + error);
                         checkRetroError(error, CreateAppointmentActivity.this);
                         if (error.getKind() != RetrofitError.Kind.NETWORK) {
                             if (error.getResponse().getStatus() == 422) {
@@ -432,14 +431,14 @@ public class CreateAppointmentActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("retro", "getAppointmentById success");
+                        Timber.d("getAppointmentById success");
                         BaseModel.getInstance().addAppointment(baseModel.getAppointment());
                         addNewApptToMaps();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "getAppointmentById failure = " + error);
+                        Timber.d("getAppointmentById failure = " + error);
                         pd.dismiss();
                     }
                 }
@@ -471,7 +470,6 @@ public class CreateAppointmentActivity extends BaseActivity {
             }
 
             if (appt.getPriority().equals("home-visit")) {
-                Log.d("bugs", " appt ID = " + appt.getId());
                 if (homeVisitClinicDateApptIdMap.get(serviceOptionId) != null) {
                     homeVisitdateApptIdMap = homeVisitClinicDateApptIdMap.get(serviceOptionId);
                     if (homeVisitdateApptIdMap.get(apptDate) != null) {
@@ -591,7 +589,6 @@ public class CreateAppointmentActivity extends BaseActivity {
                     }
                     break;
                 case R.id.list_dialog:
-                    Log.d("bugs", "list position is: " + position);
                     break;
             }
         }

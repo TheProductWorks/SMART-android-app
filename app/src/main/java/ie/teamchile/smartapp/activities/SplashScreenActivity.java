@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -16,6 +15,7 @@ import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.util.CheckForRoot;
 import ie.teamchile.smartapp.util.Constants;
 import ie.teamchile.smartapp.util.SharedPrefs;
+import timber.log.Timber;
 
 public class SplashScreenActivity extends Activity implements View.OnClickListener {
     private String rootMsg;
@@ -44,16 +44,16 @@ public class SplashScreenActivity extends Activity implements View.OnClickListen
                 sharedPrefs.setLongPrefs(this, c.getTimeInMillis(), Constants.SHARED_PREFS_SPLASH_LOG);
         }
 
-        Log.d("isDeviceRooted", "isDeviceRooted() = " + new CheckForRoot().isDeviceRooted());
+        Timber.d("isDeviceRooted() = " + new CheckForRoot().isDeviceRooted());
     }
 
     private void checkIfLoggedIn() {
         if (BaseModel.getInstance().getLoginStatus()) {
-            Log.d("bugs", "logged in = " + BaseModel.getInstance().getLoginStatus());
+            Timber.d("logged in = " + BaseModel.getInstance().getLoginStatus());
             Intent intent = new Intent(SplashScreenActivity.this, QuickMenuActivity.class);
             startActivity(intent);
         } else {
-            Log.d("bugs", "logged in = " + BaseModel.getInstance().getLoginStatus());
+            Timber.d("logged in = " + BaseModel.getInstance().getLoginStatus());
             Intent intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
             startActivity(intent);
         }

@@ -20,7 +20,6 @@ import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -59,6 +58,7 @@ import ie.teamchile.smartapp.util.ToastAlert;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class BaseActivity extends AppCompatActivity {
     protected static CountDownTimer timer;
@@ -170,20 +170,20 @@ public class BaseActivity extends AppCompatActivity {
         try {
             throw (error.getCause());
         } catch (UnknownHostException e) {
-            Log.d("retro", "UnknownHostException");
+            Timber.e("UnknownHostException");
             // unknown host
         } catch (SSLHandshakeException e) {
-            Log.d("retro", "SSLHandshakeException");
+            Timber.e("SSLHandshakeException");
         } catch (ConnectException e) {
-            Log.d("retro", "ConnectException");
+            Timber.e("ConnectException");
             /*if(!checkIfConnected(context)){
                 new SharedPrefs().setJsonPrefs(data, time);
             }*/
         } catch (Throwable throwable) {
             throwable.printStackTrace();
-            Log.d("retro", "Throwable");
+            Timber.e("Throwable");
         }
-        Log.d("retro_error", error.toString());
+        Timber.d(error.toString());
     }
 
     protected boolean checkIfConnected(Context context) {
@@ -193,11 +193,11 @@ public class BaseActivity extends AppCompatActivity {
 
         if (netInfo == null) {
             Toast.makeText(getApplicationContext(), "No Internet connection!", Toast.LENGTH_LONG).show();
-            Log.d("retro", "no internet");
+            Timber.d("no internet");
             return false;
         } else if (!netInfo.isConnected() || !netInfo.isAvailable()) {
             Toast.makeText(getApplicationContext(), "No Internet connection!", Toast.LENGTH_LONG).show();
-            Log.d("retro", "no internet");
+            Timber.d("no internet");
             return false;
         }
         return true;
@@ -284,7 +284,6 @@ public class BaseActivity extends AppCompatActivity {
                 })
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialoginterface, int i) {
-                        Log.d("MYLOG", "Logout button pressed");
                         final Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
                                 Intent.FLAG_ACTIVITY_CLEAR_TASK |
@@ -305,22 +304,22 @@ public class BaseActivity extends AppCompatActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("Retro", "logout success");
+                        Timber.d("logout success");
                         Tracking.stopUsage(BaseActivity.this);
-                        Log.d("HockeyApp", "timeUsage = " + Tracking.getUsageTime(BaseActivity.this));
+                        Timber.d("timeUsage = " + Tracking.getUsageTime(BaseActivity.this));
                         switch (response.getStatus()) {
                             case 200:
-                                Log.d("Retro", "in logout success 200");
+                                Timber.d("in logout success 200");
                                 doLogout(intent);
                                 break;
                             default:
-                                Log.d("Retro", "in logout success response = " + response.getStatus());
+                                Timber.d("in logout success response = " + response.getStatus());
                         }
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retro", "in logout failure error = " + error);
+                        Timber.d("in logout failure error = " + error);
                         if (error.getResponse().getStatus() == 401) {
                             BaseModel.getInstance().setLoginStatus(false);
                             Toast.makeText(getApplicationContext(),
@@ -342,15 +341,14 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void doLogoutWithoutIntent() {
-        Log.d("logout", "doLogoutWithoutIntent called");
         SmartApiClient.getAuthorizedApiClient().postLogout(
                 "",
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("logout", "in logout success");
+                        Timber.d("in logout success");
                         Tracking.stopUsage(BaseActivity.this);
-                        Log.d("HockeyApp", "timeUsage QuickMenu = " + Tracking.getUsageTime(BaseActivity.this));
+                        Timber.d("timeUsage QuickMenu = " + Tracking.getUsageTime(BaseActivity.this));
                         new ClearData(BaseActivity.this);
                         finish();
                         if (notificationManager != null) {
@@ -365,7 +363,7 @@ public class BaseActivity extends AppCompatActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("logout", "in logout failure error = " + error);
+                        Timber.d("in logout failure error = " + error);
                         finish();
                         new ClearData(BaseActivity.this);
                     }
@@ -389,7 +387,6 @@ public class BaseActivity extends AppCompatActivity {
         List<Pregnancy> pregnancyList = BaseModel.getInstance().getPregnancies();
         List<Date> asDate = new ArrayList<>();
         String edd;
-        Log.d("Retro", "pregnancyList size = " + pregnancyList.size());
         if (pregnancyList.size() > 0) {
             try {
                 for (int i = 0; i < pregnancyList.size(); i++) {
@@ -447,15 +444,15 @@ public class BaseActivity extends AppCompatActivity {
                     public void success(BaseModel baseModel, Response response) {
                         BaseModel.getInstance().setAppointments(baseModel.getAppointments());
                         new AppointmentHelper().addApptsToMaps(baseModel.getAppointments());
-                        Log.d("Retrofit", "appointments finished");
+                        Timber.d("appointments finished");
                         done++;
-                        Log.d("Retrofit", "done = " + done);
+                        Timber.d("done = " + done);
                         pd.dismiss();
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retrofit", "appointments retro failure " + error);
+                        Timber.d("appointments retro failure " + error);
                         Toast.makeText(context,
                                 "Error downloading appointments\n" +
                                         "please try again",
@@ -470,18 +467,18 @@ public class BaseActivity extends AppCompatActivity {
         @Override
         public void onCreate() {
             super.onCreate();
-            Log.d("logout", "LogoutService onCreate()");
+            Timber.d("LogoutService onCreate()");
         }
 
         public void startTimer(Boolean startTimer) {
             if (startTimer) {
-                Log.d("logout", "timer started");
+                Timber.d("timer started");
                 timerThing();
                 timer.start();
             } else {
                 if (timer != null) {
-                    Log.d("logout", "timer stopped");
-                    timer.cancel();
+                    Timber.d("timer stopped");
+                            timer.cancel();
                 }
             }
         }
@@ -492,7 +489,7 @@ public class BaseActivity extends AppCompatActivity {
                 }
 
                 public void onFinish() {
-                    Log.d("logout", "Call Logout by Service");
+                    Timber.d("Call Logout by Service");
                     stopSelf();
                     doLogoutWithoutIntent();
                 }

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -27,6 +26,7 @@ import ie.teamchile.smartapp.util.CustomDialogs;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import timber.log.Timber;
 
 public class QuickMenuActivity extends BaseActivity {
     private boolean isViewVisible;
@@ -39,8 +39,6 @@ public class QuickMenuActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentForNav(R.layout.activity_quick_menu);
-
-        Log.d("bugs", "quick menu in on create");
 
         btnPatientSearch = (Button) findViewById(R.id.btn_patient_search);
         btnPatientSearch.setOnClickListener(new ButtonClick());
@@ -71,7 +69,6 @@ public class QuickMenuActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("bugs", "quick menu in on resume");
         checkIfLoggedIn();
         isViewVisible = true;
         SharedPreferences.Editor prefs = getSharedPreferences("SMART", MODE_PRIVATE).edit();
@@ -84,39 +81,19 @@ public class QuickMenuActivity extends BaseActivity {
         }
 
         if(logServ != null){
-            Log.d("logout", "thingALing resume = " + thingALing);
-            Log.d("bugs", "logServ not null stopping timer");
             logServ.startTimer(false);
         }
 
         if (notificationManager != null) {
             notificationManager.cancelAll();
-            Log.d("logout", "clear notifs");
         }
     }
 
     private void checkIfLoggedIn() {
-        Log.d("bugs", "clinics.size() = " + BaseModel.getInstance().getClinics().size());
-        Log.d("bugs", "getServiceOptions.size() = " + BaseModel.getInstance().getServiceOptions().size());
-        Log.d("bugs", "getAppointments.size() = " + BaseModel.getInstance().getAppointments().size());
-
         if (BaseModel.getInstance().getClinics().size() == 0 ||
-                BaseModel.getInstance().getServiceOptions().size() == 0/* ||
-                BaseModel.getInstance().getAppointments().size() == 0*/) {
-            Log.d("bugs", "quick menu no data available");
+                BaseModel.getInstance().getServiceOptions().size() == 0) {
             updateData();
-        } else {
-            Log.d("bugs", "quick menu data available");
         }
-
-        /*if (BaseModel.getInstance().getLoginStatus()) {
-            Log.d("bugs", "logged in = " + BaseModel.getInstance().getLoginStatus());
-
-        } else {
-            Log.d("bugs", "logged in = " + BaseModel.getInstance().getLoginStatus());
-            Intent login = new Intent(QuickMenuActivity.this, LoginActivity.class);
-            startActivity(login);
-        }*/
     }
 
     private void updateData() {
@@ -130,16 +107,16 @@ public class QuickMenuActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("retro", "retro success");
-                        BaseModel.getInstance().setServiceProvider(baseModel.getServiceProviders().get(0));
-                        Log.d("Retrofit", "service provider finished");
+                        Timber.d("serviceProvider success");
+                                BaseModel.getInstance().setServiceProvider(baseModel.getServiceProviders().get(0));
+                        Timber.d("serviceProvider finished");
                         done++;
-                        Log.d("Retrofit", "done = " + done);
+                        Timber.d("done = " + done);
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("retro", "serviceProvider failure = " + error);
+                        Timber.d("serviceProvider failure = " + error);
                         done++;
                     }
                 }
@@ -165,14 +142,14 @@ public class QuickMenuActivity extends BaseActivity {
                         BaseModel.getInstance().setServiceOptionsHomeList(serviceOptionHomeList);
                         BaseModel.getInstance().setServiceOptionsHomeMap(serviceOptionHomeMap);
                         BaseModel.getInstance().setServiceOptionsClinicMap(serviceOptionClinicMap);
-                        Log.d("Retrofit", "service options finished");
+                        Timber.d("service options finished");
                         done++;
-                        Log.d("Retrofit", "done = " + done);
+                        Timber.d("done = " + done);
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retrofit", "service options retro failure " + error);
+                        Timber.d("service options retro failure " + error);
                         done++;
                     }
                 }
@@ -188,14 +165,14 @@ public class QuickMenuActivity extends BaseActivity {
                                     things.getClinics().get(i));
                         }
                         BaseModel.getInstance().setClinicMap(clinicMap);
-                        Log.d("Retrofit", "clinics finished");
+                        Timber.d("clinics finished");
                         done++;
-                        Log.d("Retrofit", "done = " + done);
+                        Timber.d("done = " + done);
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retrofit", "clinics retro failure " + error);
+                        Timber.d("clinics retro failure " + error);
                         done++;
                     }
                 }
@@ -205,7 +182,7 @@ public class QuickMenuActivity extends BaseActivity {
                 new Callback<BaseModel>() {
                     @Override
                     public void success(BaseModel baseModel, Response response) {
-                        Log.d("Retrofit", "actions retro success");
+                        Timber.d("actions retro success");
                         done++;
                         Collections.sort(baseModel.getServiceUserActions(), new Comparator<ServiceUserAction>() {
                             @Override
@@ -218,7 +195,7 @@ public class QuickMenuActivity extends BaseActivity {
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d("Retrofit", "serviceActions retro failure " + error);
+                        Timber.d("serviceActions retro failure " + error);
                         done++;
                     }
                 }
