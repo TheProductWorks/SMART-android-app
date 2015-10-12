@@ -16,12 +16,14 @@ import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.Tracking;
 import net.hockeyapp.android.UpdateManager;
 
+import java.util.Calendar;
 import java.util.Map;
 
 import ie.teamchile.smartapp.R;
 import ie.teamchile.smartapp.api.SmartApiClient;
 import ie.teamchile.smartapp.model.BaseModel;
 import ie.teamchile.smartapp.model.PostingData;
+import ie.teamchile.smartapp.util.Constants;
 import ie.teamchile.smartapp.util.CustomDialogs;
 import ie.teamchile.smartapp.util.NotKeys;
 import ie.teamchile.smartapp.util.SharedPrefs;
@@ -114,7 +116,10 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void success(BaseModel baseModel, Response response) {
                 Timber.d("postLogin success");
-                        Tracking.startUsage(LoginActivity.this);
+                Tracking.startUsage(LoginActivity.this);
+                prefsUtil.setLongPrefs(LoginActivity.this,
+                        Calendar.getInstance().getTimeInMillis(),
+                        Constants.SHARED_PREFS_SPLASH_LOG);
                 prefsUtil.deletePrefs(LoginActivity.this, "appts_got");
                 BaseModel.getInstance().setLogin(baseModel.getLogin());
                 BaseModel.getInstance().setLoginStatus(true);

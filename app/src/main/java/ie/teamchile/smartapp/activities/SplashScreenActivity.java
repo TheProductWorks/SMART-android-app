@@ -8,11 +8,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
-import java.util.Calendar;
-
 import ie.teamchile.smartapp.R;
 import ie.teamchile.smartapp.model.BaseModel;
-import ie.teamchile.smartapp.util.CheckForRoot;
 import ie.teamchile.smartapp.util.Constants;
 import ie.teamchile.smartapp.util.SharedPrefs;
 import timber.log.Timber;
@@ -22,7 +19,6 @@ public class SplashScreenActivity extends Activity implements View.OnClickListen
     private Button btnYes;
     private Button btnNo;
     private SharedPrefs sharedPrefs = new SharedPrefs();
-    private Calendar c = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,21 +26,28 @@ public class SplashScreenActivity extends Activity implements View.OnClickListen
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_splash_screen);
 
-        btnYes = (Button) findViewById(R.id.btn_yes);
-        btnYes.setOnClickListener(this);
-        btnNo = (Button) findViewById(R.id.btn_no);
-        btnNo.setOnClickListener(this);
+        checkIfValidEnvironment();
+    }
 
-        long time = sharedPrefs.getLongPrefs(this, Constants.SHARED_PREFS_SPLASH_LOG);
+    private void checkIfValidEnvironment() {
+       /* if (EnvironmentChecker.isDeviceRooted()
+                || EnvironmentChecker.isCertInvalid(this)
+                || EnvironmentChecker.isDebuggable(this)
+                || EnvironmentChecker.isEmulator()) {
+            finish();
+        } else {*/
+            btnYes = (Button) findViewById(R.id.btn_yes);
+            btnYes.setOnClickListener(this);
+            btnNo = (Button) findViewById(R.id.btn_no);
+            btnNo.setOnClickListener(this);
 
-        if(time != 0) {
-            if (DateUtils.isToday(time))
-                checkIfLoggedIn();
-            else
-                sharedPrefs.setLongPrefs(this, c.getTimeInMillis(), Constants.SHARED_PREFS_SPLASH_LOG);
-        }
+            long time = sharedPrefs.getLongPrefs(this, Constants.SHARED_PREFS_SPLASH_LOG);
 
-        Timber.d("isDeviceRooted() = " + new CheckForRoot().isDeviceRooted());
+            if (time != 0) {
+                if (DateUtils.isToday(time))
+                    checkIfLoggedIn();
+            }
+        //}
     }
 
     private void checkIfLoggedIn() {
